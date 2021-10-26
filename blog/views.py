@@ -48,20 +48,34 @@ class BlogDetail(APIView):
     try:
       return Blog.objects.get(pk=pk)
     except Blog.DoesNotExist:
-      return Response(status=status.HTTP_404_NOT_FOUND)
+      print("WETEDF")
+      return None
 
   def put(self, request, pk):
     blog = self.get_object(pk)
-    serializer = BlogSerializer(blog, data=request.data)
-    if serializer.is_valid():
-      serializer.save()
-      return Response(serializer.data, status=status.HTTP_200_OK)
+    user = request.user
+    if (user == blog.user):
+      serializer = BlogSerializer(blog, data=request.data)
+      if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response({
+      "status": "401",
+      "data": "this post has not been made by this account"
+    },status=status.HTTP_401_UNAUTHORIZED)
 
   def delete(self, request, pk):
     blog = self.get_object(pk)
-    blog.delete()
+    user = request.user
+    if (blog):
+      if (user == blog.user):
+        blog.delete()
+        return Response({
+          "data": "deleted",
+          "id": pk,
+          "status": "204",
+        }, status=status.HTTP_204_NO_CONTENT)
     return Response({
-      "data": "deleted",
-      "id": pk,
-      "status": "204",
-    }, status=status.HTTP_204_NO_CONTENT)
+      "status": "401",
+      "data": "this post has not been made by this account"
+    },status=status.HTTP_401_UNAUTHORIZED)
