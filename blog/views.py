@@ -9,7 +9,6 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import ListAPIView
-from rest_framework.authentication import TokenAuthentication
 
 class BlogList(APIView):
 
@@ -19,9 +18,7 @@ class BlogList(APIView):
   def get(self, request):
     user = request.user
     blogs = Blog.objects.all()
-    paginator = PageNumberPagination()
-    result_page = paginator.paginate_queryset(blogs, request)
-    serializer = BlogSerializer(result_page, many=True)
+    serializer = BlogSerializer(blogs, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   def post(self, request, format=None):
