@@ -7,6 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.generics import ListAPIView
+from rest_framework.authentication import TokenAuthentication
 
 class BlogList(APIView):
 
@@ -16,7 +19,9 @@ class BlogList(APIView):
   def get(self, request):
     user = request.user
     blogs = Blog.objects.all()
-    serializer = BlogSerializer(blogs, many=True)
+    paginator = PageNumberPagination()
+    result_page = paginator.paginate_queryset(blogs, request)
+    serializer = BlogSerializer(result_page, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 
   def post(self, request, format=None):
@@ -79,3 +84,9 @@ class BlogDetail(APIView):
       "status": "401",
       "data": "this post has not been made by this account"
     },status=status.HTTP_401_UNAUTHORIZED)
+
+class PaginatedBlogs(ListAPIView):
+  queryset = Blog.objects.all()
+  serializer_class = BlogSerializer
+  permission_classes = [IsAuthenticated]
+  pagination_class = PageNumberPagination
